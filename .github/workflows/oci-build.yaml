@@ -1,0 +1,92 @@
+name: Build and Push OCI
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Astro site
+        run: npm run build
+
+      # Docker login to GHCR
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build Docker image using repo root Dockerfile
+      - name: Build Docker image
+        run: docker build -t $REGISTRY/${IMAGE_NAME}:build .
+
+      - name: Tag image
+        run: |
+          VERSION=${GITHUB_SHA::12}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+          docker tag $REGISTRY/${IMAGE_NAME}:build $REGISTRY/${IMAGE_NAME}:${VERSION}
+          docker tag $REGISTRY/${IMAGE_NAME}:build $REGISTRY/${IMAGE_NAME}:latest
+
+      - name: Push image to GHCR
+        run: |
+          docker push $REGISTRY/${IMAGE_NAME}:${VERSION}
+          docker push $REGISTRY/${IMAGE_NAME}:latest
+
+      # Export to OCI archive
+      - name: Export image to OCI archive
+        run: docker save $REGISTRY/${IMAGE_NAME}:${VERSION} -o image.tar
+
+      # Convert to OCI directory layout
+      - name: Convert OCI archive to OCI layout
+        run: oras convert docker-archive:image.tar oci:oci-layout
+
+      # Login to R2 as an OCI registry
+      - name: Login to R2 using ORAS
+        run: |
+          oras login https://api.cloudflare.com \
+            --username "${{ secrets.CF_R2_ACCESS_KEY_ID }}" \
+            --password "${{ secrets.CF_R2_SECRET_ACCESS_KEY }}"
+
+      # Push the OCI layout to R2
+      - name: Push OCI to R2
+        run: |
+          oras push \
+            ${{ secrets.CF_ACCOUNT_ID }}.r2.cloudflarestorage.com/${{ secrets.CF_R2_BUCKET }}/site:${VERSION} \
+            --oci-layout-path oci-layout
+
+      # Extract GHCR digest for later use by Workers
+      - name: Extract digest
+        id: digest
+        run: |
+          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $REGISTRY/${IMAGE_NAME}:${VERSION})
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+      - name: Print digest
+        run: echo "Pushed image digest ${{ steps.digest.outputs.digest }}"
+
