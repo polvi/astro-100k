@@ -22,16 +22,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: 20
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Build Astro site
-        run: npm run build
+        run: bun run build
 
       # Docker login to GHCR
       - name: Login to GHCR
@@ -73,14 +73,14 @@ jobs:
             --username "${{ secrets.CF_R2_ACCESS_KEY_ID }}" \
             --password "${{ secrets.CF_R2_SECRET_ACCESS_KEY }}"
 
-      # Push the OCI layout to R2
+      # Push to R2
       - name: Push OCI to R2
         run: |
           oras push \
             ${{ secrets.CF_ACCOUNT_ID }}.r2.cloudflarestorage.com/${{ secrets.CF_R2_BUCKET }}/site:${VERSION} \
             --oci-layout-path oci-layout
 
-      # Extract GHCR digest for later use by Workers
+      # Extract digest from GHCR for automatic deployment
       - name: Extract digest
         id: digest
         run: |
