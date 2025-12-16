@@ -1,22 +1,15 @@
-name: Build and Push OCI
+name: Build and Push Single Layer OCI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
 
     steps:
       - name: Checkout
@@ -27,67 +20,53 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Install dependencies
+      - name: Install deps
         run: bun install
 
       - name: Build Astro site
         run: bun run build
 
-      - name: Login to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Docker image
-        run: docker build -t $REGISTRY/${IMAGE_NAME}:build .
-
-      - name: Tag image
+      # Create one tarball containing the entire dist/
+      - name: Archive dist/ as tarball
         run: |
-          VERSION=${GITHUB_SHA::12}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          mkdir artifacts
+          tar -cf artifacts/site.tar -C dist .
 
-          docker tag $REGISTRY/${IMAGE_NAME}:build $REGISTRY/${IMAGE_NAME}:${VERSION}
-          docker tag $REGISTRY/${IMAGE_NAME}:build $REGISTRY/${IMAGE_NAME}:latest
-
-      - name: Push image to GHCR
+      # Create a minimal valid OCI config
+      - name: Create OCI config
         run: |
-          docker push $REGISTRY/${IMAGE_NAME}:${VERSION}
-          docker push $REGISTRY/${IMAGE_NAME}:latest
+          cat > oci-config.json <<EOF
+          {
+            "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "architecture": "amd64",
+            "os": "linux",
+            "rootfs": { "type": "layers", "diff_ids": [] }
+          }
+          EOF
 
-      - name: Setup ORAS
+      - name: Install ORAS
         uses: oras-project/setup-oras@v1
         with:
-          version: 1.3.0
+          version: "1.3.0"
 
-      - name: Check ORAS installation
+      - name: Verify ORAS
         run: oras version
 
-      - name: Export image to OCI archive
-        run: docker save $REGISTRY/${IMAGE_NAME}:${VERSION} -o image.tar
-
-      - name: Convert image to OCI layout
-        run: oras convert docker-archive:image.tar oci:oci-layout
-
-      - name: Login to R2 with ORAS
+      - name: Login to Cloudflare R2 (S3 API)
         run: |
           oras login https://api.cloudflare.com \
             --username "${{ secrets.CF_R2_ACCESS_KEY_ID }}" \
             --password "${{ secrets.CF_R2_SECRET_ACCESS_KEY }}"
 
-      - name: Push OCI layout to R2
+      - name: Push OCI image to R2
         run: |
+          VERSION=${GITHUB_SHA::12}
+
           oras push \
             ${{ secrets.CF_ACCOUNT_ID }}.r2.cloudflarestorage.com/${{ secrets.CF_R2_BUCKET }}/site:${VERSION} \
-            --oci-layout-path oci-layout
+            artifacts/site.tar:application/vnd.oci.image.layer.v1.tar \
+            --config oci-config.json:application/vnd.oci.image.config.v1+json \
+            --artifact-type application/vnd.oci.image.manifest.v1
 
-      - name: Extract GHCR digest
-        id: digest
-        run: |
-          DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $REGISTRY/${IMAGE_NAME}:${VERSION})
-          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
-
-      - name: Print digest
-        run: echo "Pushed image digest ${{ steps.digest.outputs.digest }}"
+          echo "Pushed version $VERSION"
 
