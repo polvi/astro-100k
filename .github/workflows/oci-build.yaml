@@ -33,7 +33,6 @@ jobs:
       - name: Build Astro site
         run: bun run build
 
-      # Docker login to GHCR
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -41,7 +40,6 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build Docker image using repo root Dockerfile
       - name: Build Docker image
         run: docker build -t $REGISTRY/${IMAGE_NAME}:build .
 
@@ -58,30 +56,33 @@ jobs:
           docker push $REGISTRY/${IMAGE_NAME}:${VERSION}
           docker push $REGISTRY/${IMAGE_NAME}:latest
 
-      # Export to OCI archive
+      - name: Setup ORAS
+        uses: oras-project/setup-oras@v1
+        with:
+          version: latest
+
+      - name: Check ORAS installation
+        run: oras version
+
       - name: Export image to OCI archive
         run: docker save $REGISTRY/${IMAGE_NAME}:${VERSION} -o image.tar
 
-      # Convert to OCI directory layout
-      - name: Convert OCI archive to OCI layout
+      - name: Convert image to OCI layout
         run: oras convert docker-archive:image.tar oci:oci-layout
 
-      # Login to R2 as an OCI registry
-      - name: Login to R2 using ORAS
+      - name: Login to R2 with ORAS
         run: |
           oras login https://api.cloudflare.com \
             --username "${{ secrets.CF_R2_ACCESS_KEY_ID }}" \
             --password "${{ secrets.CF_R2_SECRET_ACCESS_KEY }}"
 
-      # Push to R2
-      - name: Push OCI to R2
+      - name: Push OCI layout to R2
         run: |
           oras push \
             ${{ secrets.CF_ACCOUNT_ID }}.r2.cloudflarestorage.com/${{ secrets.CF_R2_BUCKET }}/site:${VERSION} \
             --oci-layout-path oci-layout
 
-      # Extract digest from GHCR for automatic deployment
-      - name: Extract digest
+      - name: Extract GHCR digest
         id: digest
         run: |
           DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' $REGISTRY/${IMAGE_NAME}:${VERSION})
