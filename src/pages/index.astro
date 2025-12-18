@@ -1,5 +1,5 @@
 ---
-const currentPage = parseInt(Astro.url.searchParams.get('page') || '1');
+const currentPage = 1;
 const perPage = 25;
 const totalPages = 100000;
 const totalPaginationPages = Math.ceil(totalPages / perPage);
@@ -32,14 +32,8 @@ for (let i = startPage; i <= endPage; i++) {
 		</ul>
 
 		<div style="margin-top: 2rem;">
-			{currentPage > 1 && (
-				<a href={`/?page=${currentPage - 1}`}>← Previous</a>
-			)}
-			{currentPage > 1 && currentPage < totalPaginationPages && (
-				<span style="margin: 0 1rem;">|</span>
-			)}
 			{currentPage < totalPaginationPages && (
-				<a href={`/?page=${currentPage + 1}`}>Next →</a>
+				<a href={`/pages/${currentPage + 1}`}>Next →</a>
 			)}
 		</div>
 	</body>
