@@ -9,5 +9,35 @@ export async function getStaticPaths() {
   return paths;
 }
 
+const currentPageNum = parseInt(Astro.params.slug);
+const totalPages = 100000;
+const hasPrev = currentPageNum > 1;
+const hasNext = currentPageNum < totalPages;
 ---
-<h1>Page {Astro.params.slug}</h1>
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Page {Astro.params.slug}</title>
+	</head>
+	<body>
+		<h1>Page {Astro.params.slug}</h1>
+		
+		<div style="margin-top: 2rem;">
+			{hasPrev && (
+				<a href={`/lots-o-pages/${currentPageNum - 1}`}>← Previous</a>
+			)}
+			{hasPrev && hasNext && (
+				<span style="margin: 0 1rem;">|</span>
+			)}
+			{hasNext && (
+				<a href={`/lots-o-pages/${currentPageNum + 1}`}>Next →</a>
+			)}
+		</div>
+
+		<p style="margin-top: 2rem;"><a href="/">← Back to home</a></p>
+	</body>
+</html>
