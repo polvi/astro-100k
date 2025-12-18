@@ -1,16 +1,5 @@
 ---
-const currentPage = 1;
-const perPage = 25;
-const totalPages = 100000;
-const totalPaginationPages = Math.ceil(totalPages / perPage);
 
-const startPage = (currentPage - 1) * perPage + 1;
-const endPage = Math.min(currentPage * perPage, totalPages);
-
-const pageNumbers = [];
-for (let i = startPage; i <= endPage; i++) {
-  pageNumbers.push(i);
-}
 ---
 
 <html lang="en">
@@ -19,22 +8,10 @@ for (let i = startPage; i <= endPage; i++) {
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro - Page {currentPage}</title>
+		<title>Astro</title>
 	</head>
 	<body>
 		<h1>Astro</h1>
-		<h2>All Pages - Page {currentPage} of {totalPaginationPages}</h2>
-		
-		<ul>
-			{pageNumbers.map(num => (
-				<li><a href={`/lots-o-pages/${num}`}>Page {num}</a></li>
-			))}
-		</ul>
-
-		<div style="margin-top: 2rem;">
-			{currentPage < totalPaginationPages && (
-				<a href={`/pages/${currentPage + 1}`}>Next →</a>
-			)}
-		</div>
+		<p><a href="/pages/1">View all pages</a></p>
 	</body>
 </html>
