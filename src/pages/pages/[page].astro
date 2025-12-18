@@ -1,7 +1,7 @@
 ---
 export async function getStaticPaths() {
   const totalPages = 100000;
-  const perPage = 50;
+  const perPage = 25;
   const totalPaginationPages = Math.ceil(totalPages / perPage);
   
   const paths = [];
