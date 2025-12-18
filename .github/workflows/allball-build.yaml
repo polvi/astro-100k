@@ -1,0 +1,67 @@
+name: Build and Push .all file
+
+on:
+  push:
+    branches: ['*']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install
+
+      - name: Build Astro site
+        run: bun run build
+
+      - name: Checkout allball repository
+        uses: actions/checkout@v4
+        with:
+          repository: polvi/allball
+          path: allball
+
+      - name: Install allball dependencies
+        run: |
+          cd allball
+          bun install
+
+      - name: Build .all file
+        run: |
+          mkdir -p artifacts
+          bun run allball/src/cli.ts build dist artifacts/site.all
+
+      - name: Install ORAS
+        uses: oras-project/setup-oras@v1
+        with:
+          version: "1.3.0"
+
+      - name: Verify ORAS
+        run: oras version
+
+      - name: Login to Cloudflare R2 (S3 API)
+        run: |
+          oras login https://api.cloudflare.com \
+            --username "${{ secrets.CF_R2_ACCESS_KEY_ID }}" \
+            --password "${{ secrets.CF_R2_SECRET_ACCESS_KEY }}"
+
+      - name: Push .all file to R2
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+
+          oras push \
+            ${{ secrets.CF_ACCOUNT_ID }}.r2.cloudflarestorage.com/${{ secrets.CF_R2_BUCKET }}/site:${BRANCH_NAME} \
+            artifacts/site.all:application/octet-stream
+
+          echo "Pushed .all file with tag: $BRANCH_NAME"
