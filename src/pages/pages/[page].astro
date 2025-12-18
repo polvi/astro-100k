@@ -1,0 +1,61 @@
+---
+export async function getStaticPaths() {
+  const totalPages = 100000;
+  const perPage = 50;
+  const totalPaginationPages = Math.ceil(totalPages / perPage);
+  
+  const paths = [];
+  for (let i = 1; i <= totalPaginationPages; i++) {
+    paths.push({
+      params: { page: i.toString() }
+    });
+  }
+  return paths;
+}
+
+const currentPage = parseInt(Astro.params.page);
+const perPage = 50;
+const totalPages = 100000;
+const totalPaginationPages = Math.ceil(totalPages / perPage);
+
+const startPage = (currentPage - 1) * perPage + 1;
+const endPage = Math.min(currentPage * perPage, totalPages);
+
+const pageNumbers = [];
+for (let i = startPage; i <= endPage; i++) {
+  pageNumbers.push(i);
+}
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Pages - Page {currentPage}</title>
+	</head>
+	<body>
+		<h1>All Pages - Page {currentPage} of {totalPaginationPages}</h1>
+		
+		<ul>
+			{pageNumbers.map(num => (
+				<li><a href={`/lots-o-pages/${num}`}>Page {num}</a></li>
+			))}
+		</ul>
+
+		<div style="margin-top: 2rem;">
+			{currentPage > 1 && (
+				<a href={`/pages/${currentPage - 1}`}>← Previous</a>
+			)}
+			{currentPage > 1 && currentPage < totalPaginationPages && (
+				<span style="margin: 0 1rem;">|</span>
+			)}
+			{currentPage < totalPaginationPages && (
+				<a href={`/pages/${currentPage + 1}`}>Next →</a>
+			)}
+		</div>
+
+		<p style="margin-top: 2rem;"><a href="/">← Back to home</a></p>
+	</body>
+</html>
