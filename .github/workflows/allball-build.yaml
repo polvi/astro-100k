@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 jobs:
   build:
@@ -50,18 +51,19 @@ jobs:
       - name: Verify ORAS
         run: oras version
 
-      - name: Login to Cloudflare R2 (S3 API)
+      - name: Login to GitHub Container Registry
         run: |
-          oras login https://api.cloudflare.com \
-            --username "${{ secrets.CF_R2_ACCESS_KEY_ID }}" \
-            --password "${{ secrets.CF_R2_SECRET_ACCESS_KEY }}"
+          echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io \
+            --username ${{ github.actor }} \
+            --password-stdin
 
-      - name: Push .all file to R2
+      - name: Push .all file to GHCR
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
 
           oras push \
-            ${{ secrets.CF_ACCOUNT_ID }}.r2.cloudflarestorage.com/${{ secrets.CF_R2_BUCKET }}/site:${BRANCH_NAME} \
+            ghcr.io/${REPO_LOWER}/site:${BRANCH_NAME} \
             artifacts/site.all:application/octet-stream
 
           echo "Pushed .all file with tag: $BRANCH_NAME"
