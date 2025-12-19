@@ -69,7 +69,7 @@ jobs:
           echo "Pushed .rangefs file with tag: $BRANCH_NAME"
 
       - name: Install Wrangler
-        run: npm install -g wrangler
+        run: bun add -g wrangler
 
       - name: Upload to Cloudflare R2
         env:
@@ -81,6 +81,6 @@ jobs:
           REPO_NAME=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
           R2_KEY="${REPO_OWNER}-${REPO_NAME}-${BRANCH_NAME}.rangefs"
           
-          wrangler r2 object put ${{ vars.CLOUDFLARE_R2_BUCKET }}/${R2_KEY} --file=dist.rangefs
+          wrangler r2 object put ${{ vars.CLOUDFLARE_R2_BUCKET }}/${R2_KEY} --file=dist.rangefs --remote
           
           echo "Uploaded .rangefs file to R2 with key: ${R2_KEY}"
