@@ -1,4 +1,4 @@
-name: Build and Push .all file
+name: Build and Push .rangefs file
 
 on:
   push:
@@ -27,20 +27,20 @@ jobs:
       - name: Build Astro site
         run: bun run build
 
-      - name: Checkout allball repository
+      - name: Checkout rangefs repository
         uses: actions/checkout@v4
         with:
-          repository: polvi/allball
-          path: allball
+          repository: polvi/rangefs
+          path: rangefs
 
-      - name: Install allball dependencies
+      - name: Install rangefs dependencies
         run: |
-          cd allball
+          cd rangefs
           bun install
 
-      - name: Build .all file
+      - name: Build .rangefs file
         run: |
-          bun run allball/src/cli.ts build dist dist.all
+          bun run rangefs/src/cli.ts build dist dist.rangefs
 
       - name: Install ORAS
         uses: oras-project/setup-oras@v1
@@ -56,7 +56,7 @@ jobs:
             --username ${{ github.actor }} \
             --password-stdin
 
-      - name: Push .all file to GHCR
+      - name: Push .rangefs file to GHCR
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
@@ -64,6 +64,6 @@ jobs:
 
           oras push \
             ghcr.io/${REPO_OWNER}/${REPO_NAME}:${BRANCH_NAME} \
-            dist.all:application/octet-stream
+            dist.rangefs:application/octet-stream
 
-          echo "Pushed .all file with tag: $BRANCH_NAME"
+          echo "Pushed .rangefs file with tag: $BRANCH_NAME"
