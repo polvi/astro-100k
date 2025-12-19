@@ -60,10 +60,11 @@ jobs:
       - name: Push .all file to GHCR
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          REPO_NAME=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
 
           oras push \
-            ghcr.io/${REPO_LOWER}/site:${BRANCH_NAME} \
+            ghcr.io/${REPO_OWNER}/${REPO_NAME}:${BRANCH_NAME} \
             artifacts/site.all:application/octet-stream
 
           echo "Pushed .all file with tag: $BRANCH_NAME"
