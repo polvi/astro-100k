@@ -24,3 +24,5 @@ pnpm-debug.log*
 .idea/
 .aider*
 *.swp
+
+*.all
