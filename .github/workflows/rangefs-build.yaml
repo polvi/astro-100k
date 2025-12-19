@@ -67,3 +67,17 @@ jobs:
             dist.rangefs:application/octet-stream
 
           echo "Pushed .rangefs file with tag: $BRANCH_NAME"
+
+      - name: Upload to Cloudflare R2
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          postCommands: |
+            BRANCH_NAME=${GITHUB_REF#refs/heads/}
+            REPO_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+            REPO_NAME=$(echo "${{ github.event.repository.name }}" | tr '[:upper:]' '[:lower:]')
+            R2_KEY="${REPO_OWNER}-${REPO_NAME}-${BRANCH_NAME}.rangefs"
+            
+            wrangler r2 object put ${{ vars.CLOUDFLARE_R2_BUCKET }}/${R2_KEY} --file=dist.rangefs
+            
+            echo "Uploaded .rangefs file to R2 with key: ${R2_KEY}"
