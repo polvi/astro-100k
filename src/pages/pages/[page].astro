@@ -1,6 +1,6 @@
 ---
 export async function getStaticPaths() {
-  const totalPages = 100000;
+  const totalPages = parseInt(import.meta.env.ACTUAL_MAX_PAGES || '100000');
   const perPage = 25;
   const totalPaginationPages = Math.ceil(totalPages / perPage);
   
@@ -15,7 +15,7 @@ export async function getStaticPaths() {
 
 const currentPage = parseInt(Astro.params.page);
 const perPage = 50;
-const totalPages = 100000;
+const totalPages = parseInt(import.meta.env.ACTUAL_MAX_PAGES || '100000');;
 const totalPaginationPages = Math.ceil(totalPages / perPage);
 
 const startPage = (currentPage - 1) * perPage + 1;
