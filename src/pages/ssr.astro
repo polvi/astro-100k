@@ -1,0 +1,17 @@
+---
+const prerender = false;
+const now = new Date();
+const url = Astro.request.url;
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Current Date</title>
+  </head>
+  <body>
+    <h1>SSR Page</h1>
+    <p>{now.toString()}</p>
+    <p>Request URL: {url}</p>
+  </body>
+</html>
+
