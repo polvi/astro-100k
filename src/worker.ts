@@ -12,10 +12,7 @@ import { App } from 'astro/app';
 import { handle } from '@astrojs/cloudflare/handler'
 
 interface Env {
-  // Add your environment bindings here if needed
-  // For example:
-  // MY_KV: KVNamespace;
-  // MY_VAR: string;
+  ASSETS: { fetch: typeof fetch };
 }
 
 export function createExports(manifest: SSRManifest) {
