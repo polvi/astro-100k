@@ -11,6 +11,11 @@
   "dependencies": {
     "@astrojs/cloudflare": "^12.6.12",
     "@astrojs/sitemap": "^3.6.0",
-    "astro": "^5.16.5"
+    "astro": "^5.16.5",
+    "@rangefs/worker-runtime": "file:../rangefs/packages/worker-runtime"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251218.0",
+    "typescript": "^5.9.3"
   }
 }

@@ -10,5 +10,10 @@ export default defineConfig({
   output: 'static',
   site: 'https://astro-100k.proc.io',
   integrations: [sitemap()],
-  adapter: cloudflare()
+  adapter: cloudflare({
+   workerEntryPoint: {
+      path: 'src/worker.ts',
+      namedExports: ['handleRequest']
+    }
+  })
 });
