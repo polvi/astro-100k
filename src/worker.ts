@@ -13,6 +13,7 @@ import { handle } from '@astrojs/cloudflare/handler'
 
 interface Env {
   ASSETS: { fetch: typeof fetch };
+  [key: string]: any;
 }
 
 export function createExports(manifest: SSRManifest) {
