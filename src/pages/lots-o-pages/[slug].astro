@@ -1,7 +1,10 @@
 ---
+const maxPages = parseInt(import.meta.env.ACTUAL_MAX_PAGES || '100000');
+
 export async function getStaticPaths() {
+  const maxPages = parseInt(import.meta.env.ACTUAL_MAX_PAGES || '100000');
   const paths = [];
-  for (let i = 1; i <= 100000; i++) {
+  for (let i = 1; i <= maxPages; i++) {
     paths.push({
       params: { slug: i.toString() }
     });
@@ -10,7 +13,7 @@ export async function getStaticPaths() {
 }
 
 const currentPageNum = parseInt(Astro.params.slug);
-const totalPages = 100000;
+const totalPages = maxPages;
 const hasPrev = currentPageNum > 1;
 const hasNext = currentPageNum < totalPages;
 ---
