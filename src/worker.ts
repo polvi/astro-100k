@@ -11,12 +11,19 @@ import type { SSRManifest } from 'astro';
 import { App } from 'astro/app';
 import { handle } from '@astrojs/cloudflare/handler'
 
+interface Env {
+  // Add your environment bindings here if needed
+  // For example:
+  // MY_KV: KVNamespace;
+  // MY_VAR: string;
+}
+
 export function createExports(manifest: SSRManifest) {
   const app = new App(manifest);
   return {
     default: {
       async fetch(request, env, ctx) {
-        return handle(manifest, app, request, env, ctx);
+        return handle(manifest, app, request as any, env, ctx);
       }
     } satisfies ExportedHandler<Env>,
   }
