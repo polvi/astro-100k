@@ -1,5 +1,5 @@
 ---
-const prerender = false;
+export const prerender = false
 const now = new Date();
 const url = Astro.request.url;
 ---
@@ -10,7 +10,7 @@ const url = Astro.request.url;
   </head>
   <body>
     <h1>SSR Page</h1>
-    <p>{now.toString()}</p>
+    <p>Server time: {now.toString()}</p>
     <p>Request URL: {url}</p>
   </body>
 </html>
