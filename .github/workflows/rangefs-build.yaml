@@ -55,6 +55,9 @@ jobs:
           bunx wrangler r2 object put ${{ vars.CLOUDFLARE_R2_BUCKET }}/${R2_KEY} --file=dist.rangefs --remote
           echo "Uploaded .rangefs file to R2 with key: ${R2_KEY}"
 
+          bunx wrangler deploy
+          echo "Deployed worker"
+
       - name: Install ORAS
         uses: oras-project/setup-oras@v1
         with:
