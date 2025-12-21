@@ -12,8 +12,7 @@ export default defineConfig({
   integrations: [sitemap()],
   adapter: cloudflare({
    workerEntryPoint: {
-      path: 'src/worker.ts',
-      namedExports: ['handleRequest']
+      path: 'src/worker.ts'
     }
   })
 });

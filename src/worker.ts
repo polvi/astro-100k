@@ -1,12 +1,4 @@
-/*
-//import { serveRangefs } from "@rangefs/worker-runtime";
-
-export async function handleRequest(req, env, ctx, astro) {
- // const resp = await serveRangefs(req, env);
-  //if (resp) return resp;
-  return astro.render(req);
-}
-*/
+import { serveRangefs } from "@rangefs/worker-runtime";
 import type { SSRManifest } from 'astro';
 import { App } from 'astro/app';
 import { handle } from '@astrojs/cloudflare/handler'
@@ -21,6 +13,8 @@ export function createExports(manifest: SSRManifest) {
   return {
     default: {
       async fetch(request, env, ctx) {
+	const resp = await serveRangefs(request, env);
+	if (resp) return resp;
         return handle(manifest, app, request as any, env, ctx);
       }
     } satisfies ExportedHandler<Env>,
