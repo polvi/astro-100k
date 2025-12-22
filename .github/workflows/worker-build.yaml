@@ -1,0 +1,51 @@
+name: Build and Push .rangefs file
+
+on:
+  push:
+    branches: ['*']
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install deps
+        run: bun install
+
+      - name: Build Astro site
+        run: bun run build
+
+      - name: Update wrangler.toml for branch deployment
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          if [ "$BRANCH_NAME" != "main" ]; then
+            DOMAIN="${BRANCH_NAME}.astro-100k.proc.io"
+            sed -i 's|pattern = "astro-100k.proc.io"|pattern = "'"$DOMAIN"'"|' wrangler.toml
+            sed -i 's|name = "astro-100k"|name = "'"$DOMAIN"'"|' wrangler.toml
+            echo "Updated wrangler.toml domain to: $DOMAIN"
+            echo "Updated wrangler.toml name to: $DOMAIN"
+          else
+            DOMAIN="astro-100k.proc.io"
+            echo "Branch is main, keeping domain as astro-100k.proc.io"
+          fi
+          echo "HOSTNAME=$DOMAIN" >> $GITHUB_ENV
+
+      - name: Deploy worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          bunx wrangler deploy
+          echo "Deployed worker"
