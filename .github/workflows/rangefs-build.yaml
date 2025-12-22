@@ -62,7 +62,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          bunx wrangler kv key put --namespace-id=3db79397c0de484f8ac3f07e59cf57dd "${HOSTNAME}:ARCHIVE_FILENAME" "dist.rangefs"
+          bunx wrangler kv key put --binding CONFIG "${HOSTNAME}:ARCHIVE_FILENAME" "dist.rangefs"
           echo "Set KV key ${HOSTNAME}:ARCHIVE_FILENAME to dist.rangefs"
 
       - name: Deploy worker
