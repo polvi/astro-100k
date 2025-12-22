@@ -1,4 +1,4 @@
-import { serveRangefs } from "@rangefs/worker-runtime";
+import { serveRangefs } from "@rangefs/core";
 import type { SSRManifest } from 'astro';
 import { App } from 'astro/app';
 import { handle } from '@astrojs/cloudflare/handler'

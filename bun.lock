@@ -7,7 +7,7 @@
       "dependencies": {
         "@astrojs/cloudflare": "^12.6.12",
         "@astrojs/sitemap": "^3.6.0",
-        "@rangefs/worker-runtime": "^0.0.4",
+        "@rangefs/core": "^0.0.5",
         "astro": "^5.16.6",
       },
       "devDependencies": {
@@ -179,7 +179,7 @@
 
     "@poppinss/exception": ["@poppinss/exception@1.2.3", "", {}, "sha512-dCED+QRChTVatE9ibtoaxc+WkdzOSjYTKi/+uacHWIsfodVfpsueo3+DKpgU5Px8qXjgmXkSvhXvSCz3fnP9lw=="],
 
-    "@rangefs/worker-runtime": ["@rangefs/worker-runtime@0.0.4", "", { "peerDependencies": { "typescript": "^5" } }, "sha512-SvMYvfeTx3sB1m0Wltci7dR22i+zAQ4MBGUpB6mlLSNg0INhS4JtHEWxLIswPHTeQ8lCKDHuuxdsCZxarz3rWA=="],
+    "@rangefs/core": ["@rangefs/core@0.0.5", "", { "peerDependencies": { "typescript": "^5" }, "bin": { "rangefs": "dist/cli/cli.js" } }, "sha512-AcbZsXb0ab4STdIyCQ0BkoN5l5R+8sCunkReROFD6VkP1Qh7yXkI+3MXCHjvn0Bh8y73jJcJw6hE+zFmIJ/geA=="],
 
     "@rollup/pluginutils": ["@rollup/pluginutils@5.3.0", "", { "dependencies": { "@types/estree": "^1.0.0", "estree-walker": "^2.0.2", "picomatch": "^4.0.2" }, "peerDependencies": { "rollup": "^1.20.0||^2.0.0||^3.0.0||^4.0.0" }, "optionalPeers": ["rollup"] }, "sha512-5EdhGZtnu3V88ces7s53hhfK5KSASnJZv8Lulpc04cWO3REESroJXg73DFsOmgbU2BhwV0E20bu2IDZb3VKW4Q=="],
 
