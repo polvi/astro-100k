@@ -32,10 +32,11 @@ jobs:
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [ "$BRANCH_NAME" != "main" ]; then
             DOMAIN="${BRANCH_NAME}.astro-100k.proc.io"
+            WORKER_NAME=$(echo "$BRANCH_NAME" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
             sed -i 's|pattern = "astro-100k.proc.io"|pattern = "'"$DOMAIN"'"|' wrangler.toml
-            sed -i 's|name = "astro-100k"|name = "'"$DOMAIN"'"|' wrangler.toml
+            sed -i 's|name = "astro-100k"|name = "'"$WORKER_NAME"'"|' wrangler.toml
             echo "Updated wrangler.toml domain to: $DOMAIN"
-            echo "Updated wrangler.toml name to: $DOMAIN"
+            echo "Updated wrangler.toml name to: $WORKER_NAME"
           else
             DOMAIN="astro-100k.proc.io"
             echo "Branch is main, keeping domain as astro-100k.proc.io"
