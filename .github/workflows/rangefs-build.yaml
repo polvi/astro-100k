@@ -27,20 +27,22 @@ jobs:
       - name: Build Astro site
         run: bun run build
 
-      - name: Checkout rangefs repository
-        uses: actions/checkout@v4
-        with:
-          repository: polvi/rangefs
-          path: rangefs
-
-      - name: Install rangefs dependencies
-        run: |
-          cd rangefs
-          bun install
-
       - name: Build .rangefs file
         run: |
-          bun run rangefs/src/cli.ts build dist dist.rangefs
+          bunx @rangefs/core build dist dist.rangefs
+
+      - name: Update wrangler.toml for branch deployment
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          if [ "$BRANCH_NAME" != "main" ]; then
+            DOMAIN="${BRANCH_NAME}.astro-100k.proc.io"
+            sed -i 's|pattern = "astro-100k.proc.io"|pattern = "'"$DOMAIN"'"|' wrangler.toml
+            echo "Updated wrangler.toml domain to: $DOMAIN"
+          else
+            DOMAIN="astro-100k.proc.io"
+            echo "Branch is main, keeping domain as astro-100k.proc.io"
+          fi
+          echo "HOSTNAME=$DOMAIN" >> $GITHUB_ENV
 
       - name: Upload to Cloudflare R2
         env:
@@ -54,6 +56,22 @@ jobs:
 
           bunx wrangler r2 object put ${{ vars.CLOUDFLARE_R2_BUCKET }}/${R2_KEY} --file=dist.rangefs --remote
           echo "Uploaded .rangefs file to R2 with key: ${R2_KEY}"
+
+      - name: Set KV key for hostname
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          bunx wrangler kv key put --binding CONFIG "${HOSTNAME}:ARCHIVE_FILENAME" "dist.rangefs" --remote
+          echo "Set KV key ${HOSTNAME}:ARCHIVE_FILENAME to dist.rangefs"
+
+      - name: Deploy worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          bunx wrangler deploy
+          echo "Deployed worker"
 
       - name: Install ORAS
         uses: oras-project/setup-oras@v1
