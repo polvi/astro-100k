@@ -27,20 +27,9 @@ jobs:
       - name: Build Astro site
         run: bun run build
 
-      - name: Checkout rangefs repository
-        uses: actions/checkout@v4
-        with:
-          repository: polvi/rangefs
-          path: rangefs
-
-      - name: Install rangefs dependencies
-        run: |
-          cd rangefs
-          bun install
-
       - name: Build .rangefs file
         run: |
-          bun run rangefs/src/cli.ts build dist dist.rangefs
+          bunx rangefs build dist dist.rangefs
 
       - name: Upload to Cloudflare R2
         env:
